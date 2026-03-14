@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>優希家計簿入力</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif;
+      background: #fdf2f8;
+      min-height: 100%;
+      padding: 16px 16px 60px;
+      touch-action: manipulation;
+    }
+    .container { width: 100%; max-width: 500px; margin: 0 auto; }
+    h1 {
+      text-align: center; font-size: 17px; font-weight: 700; color: #1a202c;
+      margin-bottom: 14px; padding: 14px; background: white;
+      border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    .month-badge {
+      text-align: center; font-size: 13px; color: #9f7aea;
+      font-weight: 600; margin-bottom: 16px;
+    }
+    .card {
+      background: white; border-radius: 16px; padding: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 14px;
+    }
+    .card-title {
+      font-size: 12px; font-weight: 700; color: #9f7aea;
+      letter-spacing: 0.5px; margin-bottom: 14px;
+      text-transform: uppercase;
+    }
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    label {
+      display: block; font-size: 13px; font-weight: 600;
+      color: #4a5568; margin-bottom: 6px;
+    }
+    .input-wrap { position: relative; }
+    .input-wrap input {
+      width: 100%; padding: 13px 14px 13px 28px;
+      border: 2px solid #e9d8fd; border-radius: 10px;
+      font-size: 18px; font-weight: 700; color: #2d3748;
+      background: #fdf2f8; -webkit-appearance: none; appearance: none;
+    }
+    .input-wrap input:focus {
+      outline: none; border-color: #9f7aea; background: white;
+    }
+    .input-wrap input.filled {
+      border-color: #9f7aea; background: white;
+      color: #553c9a;
+    }
+    .yen {
+      position: absolute; left: 11px; top: 50%;
+      transform: translateY(-50%); font-size: 15px;
+      font-weight: 700; color: #9f7aea; pointer-events: none;
+    }
+    .btn {
+      width: 100%; padding: 16px;
+      background: linear-gradient(135deg, #b794f4, #9f7aea);
+      color: white; border: none; border-radius: 12px;
+      font-size: 17px; font-weight: 700; cursor: pointer;
+      box-shadow: 0 4px 12px rgba(159,122,234,0.4);
+      -webkit-tap-highlight-color: transparent;
+      margin-top: 4px;
+    }
+    .btn:active { opacity: 0.82; }
+    .btn:disabled { background: #a0aec0; box-shadow: none; }
+    .progress {
+      background: #e9d8fd; border-radius: 8px; height: 6px; margin-bottom: 16px;
+    }
+    .progress-bar {
+      background: linear-gradient(135deg, #b794f4, #9f7aea);
+      height: 6px; border-radius: 8px; transition: width 0.3s;
+    }
+    .progress-label {
+      text-align: right; font-size: 12px; color: #9f7aea;
+      font-weight: 600; margin-bottom: 6px;
+    }
+    .toast {
+      position: fixed; bottom: 28px; left: 50%;
+      transform: translateX(-50%) translateY(120px);
+      color: white; padding: 13px 20px; border-radius: 12px;
+      font-size: 14px; font-weight: 600; white-space: pre-line; text-align: center;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      z-index: 9999; width: 88%; max-width: 340px;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.success { background: linear-gradient(135deg, #9f7aea, #805ad5); }
+    .toast.error   { background: linear-gradient(135deg, #e53e3e, #c53030); }
+    .submitted-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 0; border-bottom: 1px solid #f0e6ff; font-size: 14px;
+    }
+    .submitted-item:last-child { border-bottom: none; }
+    .submitted-label { color: #4a5568; }
+    .submitted-amount { font-weight: 700; color: #9f7aea; }
+    .all-done {
+      text-align: center; padding: 20px;
+      font-size: 16px; font-weight: 700; color: #9f7aea;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>🌸 優希 家計簿入力</h1>
+  <div class="month-badge" id="monthBadge"></div>
+
+  <div class="card">
+    <div class="progress-label" id="progressLabel">0 / 6 入力済み</div>
+    <div class="progress">
+      <div class="progress-bar" id="progressBar" style="width:0%"></div>
+    </div>
+
+    <!-- 給料 -->
+    <div class="field">
+      <label>💰 優希給料（25日）</label>
+      <div class="input-wrap">
+        <span class="yen">¥</span>
+        <input type="text" id="salary" placeholder="0" inputmode="numeric" pattern="[0-9]*" min="0" oninput="updateProgress()">
+      </div>
+    </div>
+
+    <!-- AU代金 -->
+    <div class="field">
+      <label>📱 ゆきAU代金（先月分）</label>
+      <div class="input-wrap">
+        <span class="yen">¥</span>
+        <input type="text" id="au" placeholder="0" inputmode="numeric" pattern="[0-9]*" min="0" oninput="updateProgress()">
+      </div>
+    </div>
+
+    <!-- おうちコープ -->
+    <div class="field">
+      <label>🛒 おうちコープ</label>
+      <div class="input-wrap">
+        <span class="yen">¥</span>
+        <input type="text" id="coop" placeholder="0" inputmode="numeric" pattern="[0-9]*" min="0" oninput="updateProgress()">
+      </div>
+    </div>
+
+    <!-- ジョイカ -->
+    <div class="field">
+      <label>💳 優希クレジット（ジョイカ）</label>
+      <div class="input-wrap">
+        <span class="yen">¥</span>
+        <input type="text" id="joica" placeholder="0" inputmode="numeric" pattern="[0-9]*" min="0" oninput="updateProgress()">
+      </div>
+    </div>
+
+    <!-- プラチナ -->
+    <div class="field">
+      <label>💳 優希クレジット（プラチナ）</label>
+      <div class="input-wrap">
+        <span class="yen">¥</span>
+        <input type="text" id="platinum" placeholder="0" inputmode="numeric" pattern="[0-9]*" min="0" oninput="updateProgress()">
+      </div>
+    </div>
+
+    <!-- 静銀残高 -->
+    <div class="field" style="margin-bottom:20px;">
+      <label>🏦 ゆき静銀残高（月末）</label>
+      <div class="input-wrap">
+        <span class="yen">¥</span>
+        <input type="text" id="shizugin" placeholder="0" inputmode="numeric" pattern="[0-9]*" min="0" oninput="updateProgress()">
+      </div>
+    </div>
+
+    <button class="btn" id="btn" onclick="submitAll()">✅ まとめて送信する</button>
+  </div>
+
+  <!-- 送信済み一覧 -->
+  <div class="card" id="submittedCard" style="display:none;">
+    <div class="card-title">✅ 送信済み</div>
+    <div id="submittedList"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ▼▼▼ ここにGASのデプロイURLを貼る ▼▼▼
+  var GAS_URL = 'ここにGASのデプロイURLを貼り付ける';
+  // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+  var FIELDS = [
+    { id: 'salary',   label: '優希給料',              keyword: '優希給料' },
+    { id: 'au',       label: 'ゆきAU代金',            keyword: 'ゆきAU代金' },
+    { id: 'coop',     label: 'おうちコープ',           keyword: 'おうちコープ' },
+    { id: 'joica',    label: '優希クレジット（ジョイカ）',  keyword: '優希クレジット（ジョイカ）' },
+    { id: 'platinum', label: '優希クレジット（プラチナ）', keyword: '優希クレジット（プラチナ）' },
+    { id: 'shizugin', label: 'ゆき静銀残高',           keyword: 'ゆき静銀残高' },
+  ];
+
+  window.onload = function() {
+    var t = new Date();
+    var y = t.getFullYear();
+    var m = String(t.getMonth() + 1).padStart(2, '0');
+    document.getElementById('monthBadge').textContent = y + '年' + parseInt(m) + '月分';
+  };
+
+  function updateProgress() {
+    var filled = FIELDS.filter(function(f) {
+      var v = document.getElementById(f.id).value;
+      return v !== '' && parseInt(v) >= 0 || v === '0';
+    }).length;
+    var pct = Math.round(filled / FIELDS.length * 100);
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = filled + ' / ' + FIELDS.length + ' 入力済み';
+
+    FIELDS.forEach(function(f) {
+      var input = document.getElementById(f.id);
+      if (input.value !== '') {
+        input.classList.add('filled');
+      } else {
+        input.classList.remove('filled');
+      }
+    });
+  }
+
+  function submitAll() {
+    var items = [];
+    var empty = [];
+
+    FIELDS.forEach(function(f) {
+      var v = document.getElementById(f.id).value;
+      if (v !== '' && parseInt(v) >= 0 || v === '0') {
+        items.push({ keyword: f.keyword, label: f.label, amount: parseInt(v) });
+      } else {
+        empty.push(f.label);
+      }
+    });
+
+    if (items.length === 0) {
+      showToast('⚠️ 金額を入力してください', 'error');
+      return;
+    }
+
+    var btn = document.getElementById('btn');
+    btn.disabled = true;
+    btn.textContent = '送信中...';
+
+    var t = new Date();
+    var y = t.getFullYear();
+    var m = String(t.getMonth() + 1).padStart(2, '0');
+    var sheetName = y + '.' + m;
+
+    fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ type: 'yuki', items: items, sheetName: sheetName })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(r) {
+      btn.disabled = false;
+      btn.textContent = '✅ まとめて送信する';
+      if (r.success) {
+        // 送信済み一覧を表示
+        var list = document.getElementById('submittedList');
+        list.innerHTML = items.map(function(item) {
+          return '<div class="submitted-item">'
+            + '<span class="submitted-label">' + item.label + '</span>'
+            + '<span class="submitted-amount">¥' + item.amount.toLocaleString() + '</span>'
+            + '</div>';
+        }).join('');
+        document.getElementById('submittedCard').style.display = 'block';
+
+        // 入力済みフィールドをクリア
+        items.forEach(function(item) {
+          var f = FIELDS.find(function(f) { return f.keyword === item.keyword; });
+          if (f) document.getElementById(f.id).value = '';
+        });
+        updateProgress();
+
+        var msg = '✅ ' + items.length + '件を記録しました！';
+        if (empty.length > 0) msg += '\n\n未入力: ' + empty.join('・');
+        showToast(msg, 'success');
+      } else {
+        showToast(r.message, 'error');
+      }
+    })
+    .catch(function() {
+      btn.disabled = false;
+      btn.textContent = '✅ まとめて送信する';
+      showToast('❌ 通信エラーが発生しました', 'error');
+    });
+  }
+
+  function showToast(msg, type) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + type + ' show';
+    setTimeout(function() { t.className = 'toast'; }, 4000);
+  }
+</script>
+</body>
+</html>
