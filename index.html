@@ -118,6 +118,7 @@
       <div class="progress-bar" id="progressBar" style="width:0%"></div>
     </div>
 
+    <!-- 給料 -->
     <div class="field">
       <label>💰 優希給料（25日）</label>
       <div class="input-wrap">
@@ -126,6 +127,7 @@
       </div>
     </div>
 
+    <!-- AU代金 -->
     <div class="field">
       <label>📱 ゆきAU代金（先月分）</label>
       <div class="input-wrap">
@@ -134,6 +136,7 @@
       </div>
     </div>
 
+    <!-- おうちコープ -->
     <div class="field">
       <label>🛒 おうちコープ</label>
       <div class="input-wrap">
@@ -142,6 +145,7 @@
       </div>
     </div>
 
+    <!-- ジョイカ -->
     <div class="field">
       <label>💳 優希クレジット（ジョイカ）</label>
       <div class="input-wrap">
@@ -150,6 +154,7 @@
       </div>
     </div>
 
+    <!-- プラチナ -->
     <div class="field">
       <label>💳 優希クレジット（プラチナ）</label>
       <div class="input-wrap">
@@ -158,6 +163,7 @@
       </div>
     </div>
 
+    <!-- 静銀残高 -->
     <div class="field" style="margin-bottom:20px;">
       <label>🏦 ゆき静銀残高（月末）</label>
       <div class="input-wrap">
@@ -169,6 +175,7 @@
     <button class="btn" id="btn" onclick="submitAll()">✅ まとめて送信する</button>
   </div>
 
+  <!-- 送信済み一覧 -->
   <div class="card" id="submittedCard" style="display:none;">
     <div class="card-title">✅ 送信済み</div>
     <div id="submittedList"></div>
@@ -178,16 +185,17 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  // GASのデプロイURL
+  // ▼▼▼ ここにGASのデプロイURLを貼る ▼▼▼
   var GAS_URL = 'https://script.google.com/macros/s/AKfycby-9uixDTn3WvazAR91tJoCgPA4TRV0--pb8t5Jffx0qy1C7vf3XqO95PvjY5tllpGn/exec';
+  // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
   var FIELDS = [
-    { id: 'salary',   label: '優希給料',             keyword: '優希給料' },
-    { id: 'au',       label: 'ゆきAU代金',           keyword: 'ゆきAU代金' },
-    { id: 'coop',     label: 'おうちコープ',         keyword: 'おうちコープ' },
+    { id: 'salary',   label: '優希給料',              keyword: '優希給料' },
+    { id: 'au',       label: 'ゆきAU代金',            keyword: 'ゆきAU代金' },
+    { id: 'coop',     label: 'おうちコープ',           keyword: 'おうちコープ' },
     { id: 'joica',    label: '優希クレジット（ジョイカ）',  keyword: '優希クレジット（ジョイカ）' },
     { id: 'platinum', label: '優希クレジット（プラチナ）', keyword: '優希クレジット（プラチナ）' },
-    { id: 'shizugin', label: 'ゆき静銀残高',         keyword: 'ゆき静銀残高' },
+    { id: 'shizugin', label: 'ゆき静銀残高',           keyword: 'ゆき静銀残高' },
   ];
 
   window.onload = function() {
@@ -245,9 +253,6 @@
 
     fetch(GAS_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'text/plain'
-      },
       body: JSON.stringify({ type: 'yuki', items: items, sheetName: sheetName })
     })
     .then(function(r) { return r.json(); })
@@ -279,11 +284,10 @@
         showToast(r.message, 'error');
       }
     })
-    .catch(function(e) {
+    .catch(function() {
       btn.disabled = false;
       btn.textContent = '✅ まとめて送信する';
       showToast('❌ 通信エラーが発生しました', 'error');
-      console.error(e);
     });
   }
 
